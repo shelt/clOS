@@ -3,37 +3,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "mem.h"
+#include "term.h"
+#include "stdlib/mem.h"
 #include "str.h"
+#include "io.h"
 
-static const size_t VGA_WIDTH = 80;
-static const size_t VGA_HEIGHT = 25;
 
-/* Hardware text mode color constants. */
-enum vga_color
-{
-    COLOR_BLACK = 0,
-    COLOR_BLUE = 1,
-    COLOR_GREEN = 2,
-    COLOR_CYAN = 3,
-    COLOR_RED = 4,
-    COLOR_MAGENTA = 5,
-    COLOR_BROWN = 6,
-    COLOR_LIGHT_GREY = 7,
-    COLOR_DARK_GREY = 8,
-    COLOR_LIGHT_BLUE = 9,
-    COLOR_LIGHT_GREEN = 10,
-    COLOR_LIGHT_CYAN = 11,
-    COLOR_LIGHT_RED = 12,
-    COLOR_LIGHT_MAGENTA = 13,
-    COLOR_LIGHT_BROWN = 14,
-    COLOR_WHITE = 15,
-};
- 
-size_t terminal_row;
-size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_buffer;
+size_t term_row;
+size_t term_column;
+uint8_t term_color;
+uint16_t* term_buffer;
 
 /* MAKERS */
 
@@ -49,61 +28,179 @@ uint16_t make_vgaentry(char c, uint8_t color)
     return c16 | color16 << 8;
 }
 
-void terminal_setcolor(uint8_t color)
+void term_setcolor(uint8_t color)
 {
-    terminal_color = color;
+    term_color = color;
 }
 
-void terminal_setc(char c, size_t x, size_t y)
+void term_setc(char c, size_t x, size_t y)
 {
     const size_t index = y * VGA_WIDTH + x;
-    terminal_buffer[index] = make_vgaentry(c, terminal_color);
+    term_buffer[index] = make_vgaentry(c, term_color);
 }
- 
-void terminal_putc(char c)
+
+void term_putc(char c)
 {
     if (c == '\n')
     {
-        ++terminal_row;
-        terminal_column = 0;
+        ++term_row;
+        term_column = 0;
     }
     else
     {
-        terminal_setc(c, terminal_column, terminal_row);
-        ++terminal_column;
+        term_setc(c, term_column, term_row);
+        ++term_column;
     }
-    
+
     // Prevent overflow
-    if (terminal_column == VGA_WIDTH)
+    if (term_column == VGA_WIDTH)
     {
-        terminal_column = 0;
-        ++terminal_row;
+        term_column = 0;
+        ++term_row;
     }
-    if (terminal_row == VGA_HEIGHT)
+    if (term_row == VGA_HEIGHT)
     {
-        --terminal_row;
-        for (size_t y=1; y<VGA_HEIGHT; y++)
-            memcpy(&terminal_buffer[(y-1)*VGA_WIDTH],
-                   &terminal_buffer[y*VGA_WIDTH], VGA_WIDTH);
-        for (size_t x=0; x<VGA_WIDTH; x++)
-            terminal_setc(' ', x, terminal_row);
+        --term_row;
+        for (size_t y = 1; y < VGA_HEIGHT; y++)
+            memcpy(&term_buffer[(y - 1) * VGA_WIDTH],
+                   &term_buffer[y * VGA_WIDTH], VGA_WIDTH);
+        for (size_t x = 0; x < VGA_WIDTH; x++)
+            term_setc(' ', x, term_row);
     }
 }
- 
-void terminal_puts(const char* data)
+
+void term_puts(const char* data)
 {
     size_t datalen = strlen(data);
     for (size_t i = 0; i < datalen; i++)
-        terminal_putc(data[i]);
+        term_putc(data[i]);
 }
 
-void terminal_initialize()
+void term_status(const char* data, int status)
 {
-    terminal_row = 0;
-    terminal_column = 0;
-    terminal_color = make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-    terminal_buffer = (uint16_t*) 0xB8000;
+    term_puts("[ ");
+    if (status == STATUS_OKAY)
+    {
+        term_setcolor(make_color(COLOR_GREEN, COLOR_BLACK));
+        term_puts("OKAY");
+    }
+    else if (status == STATUS_FAIL)
+    {
+        term_setcolor(make_color(COLOR_RED, COLOR_BLACK));
+        term_puts("FAIL");
+    }
+    term_setcolor(make_default_color());
+    term_puts(" ] ");
+    term_puts(data);
+    term_puts("\n");
+}
+
+void term_cursor(int row, int col)
+{
+    unsigned short position = (row * 80) + col;
+
+    // cursor LOW port to vga INDEX register
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (unsigned char) (position & 0xFF));
+    // cursor HIGH port to vga INDEX register
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (unsigned char) ((position >> 8)&0xFF));
+}
+
+static void itoa(char *buf, int base, int d)
+{
+    char *p = buf;
+    char *p1, *p2;
+    unsigned long ud = d;
+    int divisor = 10;
+
+    /* If %d is specified and D is minus, put `-' in the head. */
+    if (base == 'd' && d < 0)
+    {
+        *p++ = '-';
+        buf++;
+        ud = -d;
+    }
+    else if (base == 'x')
+        divisor = 16;
+
+    /* Divide UD by DIVISOR until UD == 0. */
+    do
+    {
+        int remainder = ud % divisor;
+
+        *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
+    }
+    while (ud /= divisor);
+
+    /* Terminate BUF. */
+    *p = 0;
+
+    /* Reverse BUF. */
+    p1 = buf;
+    p2 = p - 1;
+    while (p1 < p2)
+    {
+        char tmp = *p1;
+        *p1 = *p2;
+        *p2 = tmp;
+        p1++;
+        p2--;
+    }
+}
+
+void term_printf(const char *format, ...)
+{
+    char **arg = (char **) &format;
+    int c;
+    char buf[20];
+
+    arg++;
+
+    while ((c = *format++) != 0)
+    {
+        if (c != '%')
+            term_putc(c);
+        else
+        {
+            char *p;
+
+            c = *format++;
+            switch (c)
+            {
+            case 'd':
+            case 'u':
+            case 'x':
+                itoa(buf, c, *((int *) arg++));
+                p = buf;
+                goto string;
+                break;
+
+            case 's':
+                p = *arg++;
+                if (!p)
+                    p = "(null)";
+
+string:
+                while (*p)
+                    term_putc(*p++);
+                break;
+
+            default:
+                term_putc(*((int *) arg++));
+                break;
+            }
+        }
+    }
+}
+
+void term_init()
+{
+    term_row = 0;
+    term_column = 0;
+    term_color = make_default_color();
+    term_buffer = (uint16_t*) 0xB8000;
     for (size_t y = 0; y < VGA_HEIGHT; y++)
         for (size_t x = 0; x < VGA_WIDTH; x++)
-            terminal_setc(' ', x, y);
+            term_setc(' ', x, y);
 }

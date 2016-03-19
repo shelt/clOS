@@ -10,8 +10,8 @@ AFLAGS=
 AS=i686-elf-as 
 CC=i686-elf-gcc
 
-default: all
-all: init kernel
+default: run
+all: init stdlib kernel
 run: all
 	qemu-system-i386 -kernel bin/kernel.bin
 $(L_DIR)/%.o: stdlib
@@ -22,10 +22,12 @@ $(O_DIR)/%.o: $(S_DIR)/%.c
 $(O_DIR)/%.o: $(S_DIR)/%.s
 	$(AS) $< -o $@ $(AFLAGS)
 
+# TODO make more DRY
 stdlib:
+	mkdir -p lib/stdlib
 	cd ../stdlib && make
-	cp -R ../stdlib/build/* lib
-	cp -R ../stdlib/include/* lib
+	cp -R ../stdlib/build/* lib/stdlib
+	cp -R ../stdlib/include/* lib/stdlib
 
 kernel: $(L_DIR)/*.o $(addprefix $(O_DIR)/, $(addsuffix .o, $(basename $(shell cd $(S_DIR) && find $@ -name '*.c') $(shell cd $(S_DIR) && find $@ -name '*.s'))))
 	$(CC) $^ -o $(B_DIR)/kernel.bin -T linker.ld -nostdlib -lgcc $(CFLAGS)
