@@ -5,14 +5,15 @@
 
 #include "term.h"
 #include "stdlib/mem.h"
-#include "str.h"
+#include "stdlib/str.h"
 #include "io.h"
-
 
 size_t term_row;
 size_t term_column;
 uint8_t term_color;
-uint16_t* term_buffer;
+uint16_t *term_buffer;
+
+void prevent_overflow();
 
 /* MAKERS */
 
@@ -51,22 +52,7 @@ void term_putc(char c)
         term_setc(c, term_column, term_row);
         ++term_column;
     }
-
-    // Prevent overflow
-    if (term_column == VGA_WIDTH)
-    {
-        term_column = 0;
-        ++term_row;
-    }
-    if (term_row == VGA_HEIGHT)
-    {
-        --term_row;
-        for (size_t y = 1; y < VGA_HEIGHT; y++)
-            memcpy(&term_buffer[(y - 1) * VGA_WIDTH],
-                   &term_buffer[y * VGA_WIDTH], VGA_WIDTH);
-        for (size_t x = 0; x < VGA_WIDTH; x++)
-            term_setc(' ', x, term_row);
-    }
+    prevent_overflow();
 }
 
 void term_puts(const char* data)
@@ -76,23 +62,23 @@ void term_puts(const char* data)
         term_putc(data[i]);
 }
 
-void term_status(const char* data, int status)
+void prevent_overflow()
 {
-    term_puts("[ ");
-    if (status == STATUS_OKAY)
+    if (term_column == VGA_WIDTH)
     {
-        term_setcolor(make_color(COLOR_GREEN, COLOR_BLACK));
-        term_puts("OKAY");
+        term_column = 0;
+        ++term_row;
     }
-    else if (status == STATUS_FAIL)
+    if (term_row == VGA_HEIGHT)
     {
-        term_setcolor(make_color(COLOR_RED, COLOR_BLACK));
-        term_puts("FAIL");
+        --term_row;
+        
+        for (size_t y = 1; y < VGA_HEIGHT; y++)
+            memcpy(&term_buffer[(y - 1) * VGA_WIDTH],
+                   &term_buffer[y * VGA_WIDTH], VGA_WIDTH*2);
+        for (size_t x = 0; x < VGA_WIDTH; x++)
+            term_setc(' ', x, term_row);
     }
-    term_setcolor(make_default_color());
-    term_puts(" ] ");
-    term_puts(data);
-    term_puts("\n");
 }
 
 void term_cursor(int row, int col)
@@ -107,12 +93,29 @@ void term_cursor(int row, int col)
     outb(0x3D5, (unsigned char) ((position >> 8)&0xFF));
 }
 
-static void itoa(char *buf, int base, int d)
+
+int numlen(int d)
+{
+    int len = 0;
+    int tmp = 1L;
+    while(tmp < d)
+    {
+        len++;
+        tmp = (tmp << 3) + (tmp << 1);
+    }
+    return len;
+}
+
+/* Convert the integer D to a string and save the string in BUF. If
+   BASE is equal to 'd', interpret that D is decimal, and if BASE is
+   equal to 'x', interpret that D is hexadecimal. */
+static void itoa(char *buf, int base, int d, int l)
 {
     char *p = buf;
     char *p1, *p2;
     unsigned long ud = d;
     int divisor = 10;
+    int numlen = 0;
 
     /* If %d is specified and D is minus, put `-' in the head. */
     if (base == 'd' && d < 0)
@@ -130,8 +133,15 @@ static void itoa(char *buf, int base, int d)
         int remainder = ud % divisor;
 
         *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
+        
+        numlen++;
     }
     while (ud /= divisor);
+    
+    int zeros = l-numlen;
+    if (zeros > 0)
+        for (int i=0; i<zeros; i++)
+            *p++ = '0';
 
     /* Terminate BUF. */
     *p = 0;
@@ -149,11 +159,12 @@ static void itoa(char *buf, int base, int d)
     }
 }
 
+#define MAX_FORMAT_SIZE 30
 void term_printf(const char *format, ...)
 {
     char **arg = (char **) &format;
     int c;
-    char buf[20];
+    char buf[MAX_FORMAT_SIZE];
 
     arg++;
 
@@ -168,10 +179,19 @@ void term_printf(const char *format, ...)
             c = *format++;
             switch (c)
             {
+            
+            case '0':
+                c = *format++;
+                int leading = c - '0';
+                c = *format++;
+                itoa(buf, c, *((int *) arg++), leading);
+                p = buf;
+                goto string;
+                break;
             case 'd':
             case 'u':
             case 'x':
-                itoa(buf, c, *((int *) arg++));
+                itoa(buf, c, *((int *) arg++), 0);
                 p = buf;
                 goto string;
                 break;
@@ -181,7 +201,7 @@ void term_printf(const char *format, ...)
                 if (!p)
                     p = "(null)";
 
-string:
+            string:
                 while (*p)
                     term_putc(*p++);
                 break;
@@ -194,8 +214,40 @@ string:
     }
 }
 
+void term_statusnewline(int status)
+{
+    term_setcolor(make_default_color());
+    term_setc('[', VGA_WIDTH-9, term_row);
+    term_setc(' ', VGA_WIDTH-8, term_row);
+    
+    if (status == STATUS_OKAY)
+    {
+        term_setcolor(make_color(COLOR_GREEN, COLOR_BLACK));
+        term_setc('O', VGA_WIDTH-7, term_row);
+        term_setc('K', VGA_WIDTH-6, term_row);
+        term_setc('A', VGA_WIDTH-5, term_row);
+        term_setc('Y', VGA_WIDTH-4, term_row);
+    }
+    else if (status == STATUS_FAIL)
+    {
+        term_setcolor(make_color(COLOR_RED, COLOR_BLACK));
+        term_setc('F', VGA_WIDTH-7, term_row);
+        term_setc('A', VGA_WIDTH-6, term_row);
+        term_setc('I', VGA_WIDTH-5, term_row);
+        term_setc('L', VGA_WIDTH-4, term_row);
+    }
+    term_setcolor(make_default_color());
+    term_setc(' ', VGA_WIDTH-3, term_row);
+    term_setc(']', VGA_WIDTH-2, term_row);
+    term_setc(' ', VGA_WIDTH-1, term_row);
+    
+    term_putc('\n');
+    
+}
+
 void term_init()
 {
+    term_cursor(-1, 0); // hide cursor TODO external cursor manipulation functions
     term_row = 0;
     term_column = 0;
     term_color = make_default_color();
@@ -203,4 +255,16 @@ void term_init()
     for (size_t y = 0; y < VGA_HEIGHT; y++)
         for (size_t x = 0; x < VGA_WIDTH; x++)
             term_setc(' ', x, y);
+    
+    
+    //uint16_t tmp = make_vgaentry('T', make_color(COLOR_WHITE,COLOR_WHITE));
+    
+    //method 1
+    //memcpy(&term_buffer[VGA_WIDTH-1], &tmp, 2);
+    //memcpy(&term_buffer[VGA_WIDTH*2-1], &term_buffer[VGA_WIDTH-1], 2);
+    
+    //2
+    //term_buffer[VGA_WIDTH-1] = tmp;
+    
+    //term_statusnewline(1);
 }

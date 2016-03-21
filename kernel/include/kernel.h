@@ -5,8 +5,7 @@
 
 #define MB_BL_MAGIC 0x2BADB002
 
-
-
+// TODO combine struct and typedefs
 
 /* The symbol table for a.out. */
 struct multiboot_aout_symbol_table
@@ -80,16 +79,13 @@ struct multiboot_info
 };
 typedef struct multiboot_info multiboot_info_t;
 
-struct multiboot_mmap_entry
+typedef struct multiboot_mmap
 {
     uint32_t size;
-    uint64_t addr;
-    uint64_t len;
-#define MULTIBOOT_MEMORY_AVAILABLE              1
-#define MULTIBOOT_MEMORY_RESERVED               2
+    uint64_t base_addr;
+    uint64_t length;
     uint32_t type;
-} __attribute__((packed));
-typedef struct multiboot_mmap_entry multiboot_memory_map_t;
+} multiboot_mmap_t;
 
 struct multiboot_mod_list
 {

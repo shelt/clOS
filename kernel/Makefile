@@ -4,7 +4,7 @@ L_DIR = lib
 B_DIR = bin
 S_DIR = src
 
-CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra -I$(I_DIR) -I$(L_DIR)
+CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra -I$(I_DIR) -I$(L_DIR) -L$(L_DIR) -lstdlib
 AFLAGS=
 
 AS=i686-elf-as 
@@ -26,10 +26,10 @@ $(O_DIR)/%.o: $(S_DIR)/%.s
 stdlib:
 	mkdir -p lib/stdlib
 	cd ../stdlib && make
-	cp -R ../stdlib/build/* lib/stdlib
+	cp -R ../stdlib/lib/* lib
 	cp -R ../stdlib/include/* lib/stdlib
 
-kernel: $(L_DIR)/*.o $(addprefix $(O_DIR)/, $(addsuffix .o, $(basename $(shell cd $(S_DIR) && find $@ -name '*.c') $(shell cd $(S_DIR) && find $@ -name '*.s'))))
+kernel: $(addprefix $(O_DIR)/, $(addsuffix .o, $(basename $(shell cd $(S_DIR) && find $@ -name '*.c') $(shell cd $(S_DIR) && find $@ -name '*.s'))))
 	$(CC) $^ -o $(B_DIR)/kernel.bin -T linker.ld -nostdlib -lgcc $(CFLAGS)
 
 

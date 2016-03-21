@@ -18,3 +18,12 @@ void *memcpy(void *_dst, void *_src, size_t len)
     
     return dst;
 }
+
+void *memset(void *_dst, unsigned char data, size_t len)
+{
+    register char *dst = _dst;
+    for (size_t i=0; i<len; i++)
+        dst[i] = data;
+    
+    return dst;
+}

@@ -25,8 +25,8 @@ enum vga_color
     COLOR_WHITE = 15,
 };
 
-#define STATUS_OKAY 0
-#define STATUS_FAIL 1
+#define STATUS_FAIL 0
+#define STATUS_OKAY 1
 
 uint8_t make_color(enum vga_color fg, enum vga_color bg);
 
@@ -37,11 +37,13 @@ inline uint8_t make_default_color()
 
 void term_setcolor(uint8_t color);
 
+void term_setc(char c, size_t x, size_t y);
+
 void term_putc(char c);
 
-void term_puts(const char* data);
+void term_puts(const char *data);
 
-void term_status(const char* data, int status);
+void term_status(int status, const char *data, ...);
 
 void term_printf(const char *format, ...);
 
