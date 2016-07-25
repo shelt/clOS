@@ -1,8 +1,3 @@
-/* GCC stdlibs */
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 #include "term.h"
 #include "stdlib/mem.h"
 #include "stdlib/str.h"
@@ -86,11 +81,11 @@ void term_cursor(int row, int col)
     unsigned short position = (row * 80) + col;
 
     // cursor LOW port to vga INDEX register
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (unsigned char) (position & 0xFF));
+    outportb(0x3D4, 0x0F);
+    outportb(0x3D5, (unsigned char) (position & 0xFF));
     // cursor HIGH port to vga INDEX register
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (unsigned char) ((position >> 8)&0xFF));
+    outportb(0x3D4, 0x0E);
+    outportb(0x3D5, (unsigned char) ((position >> 8)&0xFF));
 }
 
 

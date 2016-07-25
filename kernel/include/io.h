@@ -1,6 +1,7 @@
 #ifndef IO_H
 #define IO_H
 
-void outb(unsigned short port, unsigned char val);
+unsigned char inportb(unsigned int port);
+void outportb(unsigned int port,unsigned char value);
 
 #endif /* IO_H */

@@ -1,5 +1,11 @@
 #ifndef TERM_H
 #define TERM_H
+#include <stddef.h>
+
+/* GCC stdlibs */
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
@@ -46,6 +52,8 @@ void term_puts(const char *data);
 void term_status(int status, const char *data, ...);
 
 void term_printf(const char *format, ...);
+
+void term_statusnewline(int status);
 
 void term_cursor(int x, int y);
 

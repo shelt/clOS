@@ -9,7 +9,7 @@ CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra -I$(I_DIR)
 AS=i686-elf-as
 CC=i686-elf-gcc
 
-default: stdlib
+default: init stdlib
 
 $(O_DIR)/%.o: $(S_DIR)/%.c
 	$(CC) -c $< -o $@ $(CFLAGS)
@@ -20,3 +20,12 @@ $(O_DIR)/%.o: $(S_DIR)/%.s
 
 stdlib: $(addprefix $(O_DIR)/, $(addsuffix .o, $(basename $(shell cd $(S_DIR) && find $@ -name '*.c'))))
 	ar rcs $(L_DIR)/stdlib.a $^
+
+init:
+	mkdir -p $(O_DIR)
+	mkdir -p $(B_DIR)
+	mkdir -p $(L_DIR)
+clean:
+	rm -rf ./$(O_DIR)
+	rm -rf ./$(B_DIR)
+
