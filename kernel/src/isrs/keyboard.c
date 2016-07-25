@@ -1,6 +1,6 @@
 #include "isrs.h"
 #include "io.h"
-#include "term.h" // temp for kb
+#include "vga.h" // temp for kb
 
 
 unsigned char kbdus[128] =
@@ -42,6 +42,6 @@ void isr_irq1(struct isr_regs *r)
         *  to the above layout to correspond to 'shift' being
         *  held. If shift is held using the larger lookup table,
         *  you would add 128 to the scancode when you look for it */
-        term_putc(kbdus[scancode]);
+        vga_putc(kbdus[scancode]);
     }
 }

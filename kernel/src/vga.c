@@ -1,12 +1,12 @@
-#include "term.h"
+#include "vga.h"
 #include "stdlib/mem.h"
 #include "stdlib/str.h"
 #include "io.h"
 
-size_t term_row;
-size_t term_column;
-uint8_t term_color;
-uint16_t *term_buffer;
+size_t vga_row;
+size_t vga_column;
+uint8_t vga_color;
+uint16_t *vga_buffer;
 
 void prevent_overflow();
 
@@ -24,59 +24,59 @@ uint16_t make_vgaentry(char c, uint8_t color)
     return c16 | color16 << 8;
 }
 
-void term_setcolor(uint8_t color)
+void vga_setcolor(uint8_t color)
 {
-    term_color = color;
+    vga_color = color;
 }
 
-void term_setc(char c, size_t x, size_t y)
+void vga_setc(char c, size_t x, size_t y)
 {
     const size_t index = y * VGA_WIDTH + x;
-    term_buffer[index] = make_vgaentry(c, term_color);
+    vga_buffer[index] = make_vgaentry(c, vga_color);
 }
 
-void term_putc(char c)
+void vga_putc(char c)
 {
     if (c == '\n')
     {
-        ++term_row;
-        term_column = 0;
+        ++vga_row;
+        vga_column = 0;
     }
     else
     {
-        term_setc(c, term_column, term_row);
-        ++term_column;
+        vga_setc(c, vga_column, vga_row);
+        ++vga_column;
     }
     prevent_overflow();
 }
 
-void term_puts(const char* data)
+void vga_puts(const char* data)
 {
     size_t datalen = strlen(data);
     for (size_t i = 0; i < datalen; i++)
-        term_putc(data[i]);
+        vga_putc(data[i]);
 }
 
 void prevent_overflow()
 {
-    if (term_column == VGA_WIDTH)
+    if (vga_column == VGA_WIDTH)
     {
-        term_column = 0;
-        ++term_row;
+        vga_column = 0;
+        ++vga_row;
     }
-    if (term_row == VGA_HEIGHT)
+    if (vga_row == VGA_HEIGHT)
     {
-        --term_row;
+        --vga_row;
         
         for (size_t y = 1; y < VGA_HEIGHT; y++)
-            memcpy(&term_buffer[(y - 1) * VGA_WIDTH],
-                   &term_buffer[y * VGA_WIDTH], VGA_WIDTH*2);
+            memcpy(&vga_buffer[(y - 1) * VGA_WIDTH],
+                   &vga_buffer[y * VGA_WIDTH], VGA_WIDTH*2);
         for (size_t x = 0; x < VGA_WIDTH; x++)
-            term_setc(' ', x, term_row);
+            vga_setc(' ', x, vga_row);
     }
 }
 
-void term_cursor(int row, int col)
+void vga_cursor(int row, int col)
 {
     unsigned short position = (row * 80) + col;
 
@@ -87,7 +87,6 @@ void term_cursor(int row, int col)
     outportb(0x3D4, 0x0E);
     outportb(0x3D5, (unsigned char) ((position >> 8)&0xFF));
 }
-
 
 int numlen(int d)
 {
@@ -155,7 +154,7 @@ static void itoa(char *buf, int base, int d, int l)
 }
 
 #define MAX_FORMAT_SIZE 30
-void term_printf(const char *format, ...)
+void vga_printf(const char *format, ...)
 {
     char **arg = (char **) &format;
     int c;
@@ -166,7 +165,7 @@ void term_printf(const char *format, ...)
     while ((c = *format++) != 0)
     {
         if (c != '%')
-            term_putc(c);
+            vga_putc(c);
         else
         {
             char *p;
@@ -198,68 +197,68 @@ void term_printf(const char *format, ...)
 
             string:
                 while (*p)
-                    term_putc(*p++);
+                    vga_putc(*p++);
                 break;
 
             default:
-                term_putc(*((int *) arg++));
+                vga_putc(*((int *) arg++));
                 break;
             }
         }
     }
 }
 
-void term_statusnewline(int status)
+void vga_statusnewline(int status)
 {
-    term_setcolor(make_default_color());
-    term_setc('[', VGA_WIDTH-9, term_row);
-    term_setc(' ', VGA_WIDTH-8, term_row);
+    vga_setcolor(make_default_color());
+    vga_setc('[', VGA_WIDTH-9, vga_row);
+    vga_setc(' ', VGA_WIDTH-8, vga_row);
     
     if (status == STATUS_OKAY)
     {
-        term_setcolor(make_color(COLOR_GREEN, COLOR_BLACK));
-        term_setc('O', VGA_WIDTH-7, term_row);
-        term_setc('K', VGA_WIDTH-6, term_row);
-        term_setc('A', VGA_WIDTH-5, term_row);
-        term_setc('Y', VGA_WIDTH-4, term_row);
+        vga_setcolor(make_color(COLOR_GREEN, COLOR_BLACK));
+        vga_setc('O', VGA_WIDTH-7, vga_row);
+        vga_setc('K', VGA_WIDTH-6, vga_row);
+        vga_setc('A', VGA_WIDTH-5, vga_row);
+        vga_setc('Y', VGA_WIDTH-4, vga_row);
     }
     else if (status == STATUS_FAIL)
     {
-        term_setcolor(make_color(COLOR_RED, COLOR_BLACK));
-        term_setc('F', VGA_WIDTH-7, term_row);
-        term_setc('A', VGA_WIDTH-6, term_row);
-        term_setc('I', VGA_WIDTH-5, term_row);
-        term_setc('L', VGA_WIDTH-4, term_row);
+        vga_setcolor(make_color(COLOR_RED, COLOR_BLACK));
+        vga_setc('F', VGA_WIDTH-7, vga_row);
+        vga_setc('A', VGA_WIDTH-6, vga_row);
+        vga_setc('I', VGA_WIDTH-5, vga_row);
+        vga_setc('L', VGA_WIDTH-4, vga_row);
     }
-    term_setcolor(make_default_color());
-    term_setc(' ', VGA_WIDTH-3, term_row);
-    term_setc(']', VGA_WIDTH-2, term_row);
-    term_setc(' ', VGA_WIDTH-1, term_row);
+    vga_setcolor(make_default_color());
+    vga_setc(' ', VGA_WIDTH-3, vga_row);
+    vga_setc(']', VGA_WIDTH-2, vga_row);
+    vga_setc(' ', VGA_WIDTH-1, vga_row);
     
-    term_putc('\n');
+    vga_putc('\n');
     
 }
 
-void term_init()
+void vga_init()
 {
-    term_cursor(-1, 0); // hide cursor TODO external cursor manipulation functions
-    term_row = 0;
-    term_column = 0;
-    term_color = make_default_color();
-    term_buffer = (uint16_t*) 0xB8000;
+    vga_cursor(-1, 0); // hide cursor TODO external cursor manipulation functions
+    vga_row = 0;
+    vga_column = 0;
+    vga_color = make_default_color();
+    vga_buffer = (uint16_t*) 0xB8000;
     for (size_t y = 0; y < VGA_HEIGHT; y++)
         for (size_t x = 0; x < VGA_WIDTH; x++)
-            term_setc(' ', x, y);
+            vga_setc(' ', x, y);
     
     
     //uint16_t tmp = make_vgaentry('T', make_color(COLOR_WHITE,COLOR_WHITE));
     
     //method 1
-    //memcpy(&term_buffer[VGA_WIDTH-1], &tmp, 2);
-    //memcpy(&term_buffer[VGA_WIDTH*2-1], &term_buffer[VGA_WIDTH-1], 2);
+    //memcpy(&vga_buffer[VGA_WIDTH-1], &tmp, 2);
+    //memcpy(&vga_buffer[VGA_WIDTH*2-1], &vga_buffer[VGA_WIDTH-1], 2);
     
     //2
-    //term_buffer[VGA_WIDTH-1] = tmp;
+    //vga_buffer[VGA_WIDTH-1] = tmp;
     
-    //term_statusnewline(1);
+    //vga_statusnewline(1);
 }

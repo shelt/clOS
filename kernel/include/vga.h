@@ -1,5 +1,5 @@
-#ifndef TERM_H
-#define TERM_H
+#ifndef VGA_H
+#define VGA_H
 #include <stddef.h>
 
 /* GCC stdlibs */
@@ -41,23 +41,23 @@ inline uint8_t make_default_color()
     return make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
 }
 
-void term_setcolor(uint8_t color);
+void vga_setcolor(uint8_t color);
 
-void term_setc(char c, size_t x, size_t y);
+void vga_setc(char c, size_t x, size_t y);
 
-void term_putc(char c);
+void vga_putc(char c);
 
-void term_puts(const char *data);
+void vga_puts(const char *data);
 
-void term_status(int status, const char *data, ...);
+void vga_status(int status, const char *data, ...);
 
-void term_printf(const char *format, ...);
+void vga_printf(const char *format, ...);
 
-void term_statusnewline(int status);
+void vga_statusnewline(int status);
 
-void term_cursor(int x, int y);
+void vga_cursor(int x, int y);
 
-void term_init();
+void vga_init();
 
-#endif /* TERM_H */
+#endif /* VGA_H */
 
