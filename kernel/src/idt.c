@@ -1,17 +1,14 @@
 #include "idt.h"
+#include "isr.h"
+#include "isrs.h"
 #include "str.h"
 #include "io.h"
 
-/* Declare an IDT of 256 entries. Although we will only use the
-*  first 32 entries in this tutorial, the rest exists as a bit
-*  of a trap. If any undefined IDT entry is hit, it normally
-*  will cause an "Unhandled Interrupt" exception. Any descriptor
-*  for which the 'presence' bit is cleared (0) will generate an
-*  "Unhandled Interrupt" exception */
+// Actual IDT in memory
 struct idt_entry idt[256];
 struct idt_ptr idtp;
 
-/* Setup a descriptor in the Interrupt Descriptor Table */
+// IDT descriptor creation
 void idt_set_gate(unsigned char i, unsigned long base, unsigned short sel, unsigned char flags)
 {
     /* The interrupt routine's base address */
@@ -87,7 +84,7 @@ void idt_init()
     idt_set_gate(30, (unsigned)int30, 0x08, 0x8E);
     idt_set_gate(31, (unsigned)int30, 0x08, 0x8E);
 
-    // Requests    
+    // Requests
     idt_set_gate(32, (unsigned)int32, 0x08, 0x8E);
     idt_set_gate(33, (unsigned)int33, 0x08, 0x8E);
     idt_set_gate(34, (unsigned)int34, 0x08, 0x8E);
@@ -104,6 +101,9 @@ void idt_init()
     idt_set_gate(45, (unsigned)int45, 0x08, 0x8E);
     idt_set_gate(46, (unsigned)int46, 0x08, 0x8E);
     idt_set_gate(47, (unsigned)int47, 0x08, 0x8E);
+
+    // Request ISRs
+    isr_irq_set(1, isr_irq1);
     
     /* Points the processor's internal register to the new IDT */
     idt_load();

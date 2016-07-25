@@ -18,17 +18,9 @@ struct idt_ptr
 } __attribute__((packed));
 
 
-/* what the stack looks like in the isr */
-struct isr_regs
-{
-    unsigned int gs, fs, es, ds;      /* pushed the segs last */
-    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
-    unsigned int int_no, err_code;    /* our 'push byte #' and ecodes do this */
-    unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
-};
+extern void idt_load(); // Found in descriptors.s
 
-// All found in setup.s
-extern void idt_load();
+// All found in isrload.s
 extern void int0();
 extern void int1();
 extern void int2();
@@ -78,7 +70,6 @@ extern void int44();
 extern void int45();
 extern void int46();
 extern void int47();
-
 
 void idt_init();
 

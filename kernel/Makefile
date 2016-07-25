@@ -28,7 +28,7 @@ kernel: $(addprefix $(O_DIR)/, $(addsuffix .o, $(basename $(shell cd $(S_DIR) &&
 
 
 init:
-	mkdir -p $(O_DIR)/klib
+	mkdir -p $(O_DIR)/isrs
 	mkdir -p $(B_DIR)
 	mkdir -p $(L_DIR)
 clean:

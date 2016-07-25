@@ -6,7 +6,7 @@ struct gdt_ptr gdtp;
 
 extern void gdt_load(); // Found in setup.s
 
-/* Setup a descriptor in the Global Descriptor Table */
+// GDT descriptor creation
 void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran)
 {
     /* Setup the descriptor base address */
