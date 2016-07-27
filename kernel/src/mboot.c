@@ -6,33 +6,7 @@
 
 void mboot_verify(register uint32_t magic, multiboot_info_t *mbi)
 {
-    if (magic != MB_BL_MAGIC)
-        kernel_panic("bootloader not multiboot-compliant");
 
-    vga_printf("memory     : %uKB lower, %uKB upper",
-                (unsigned) mbi->mem_lower, (unsigned) mbi->mem_upper);
-    vga_statusnewline(CHECK_FLAG(mbi->flags, 0));
-
-    vga_printf("boot device: 0x%x",
-                (unsigned) mbi->boot_device);
-    vga_statusnewline(CHECK_FLAG(mbi->flags, 1) > 0);
-
-    vga_printf("cmdline    : %s", (char *) mbi->cmdline);
-    vga_statusnewline(CHECK_FLAG(mbi->flags, 2) > 0);
-
-    vga_printf("%d modules provided, starting at 0x%x",
-                (int) mbi->mods_count, (int) mbi->mods_addr);
-    vga_statusnewline(CHECK_FLAG(mbi->flags, 3) > 0);
-
-    // Check for mutex of bits 4 and 5
-    if (CHECK_FLAG(mbi->flags, 4) && CHECK_FLAG(mbi->flags, 5))
-        kernel_panic("bootloader info bits 4 and 5 are both set");
-
-    vga_printf("symbol table located");
-    vga_statusnewline((CHECK_FLAG(mbi->flags, 4) || CHECK_FLAG(mbi->flags, 5)) > 0);
-
-    vga_printf("memory map located");
-    vga_statusnewline(CHECK_FLAG(mbi->flags, 6) > 0);
 }
 
 //OLD//

@@ -1,18 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define KERNEL_BANNER \
-"######          ##         ######\n"\
-" ######       ###  #      ###### \n"\
-"  ######      #####      ######  \n"\
-"    ########## # # ##########    \n"\
-"     ##########   ##########     \n"\
-"       ######### ##########      \n"\
-"         ## KERNEL V1 ##         \n"\
-"          #############          \n"\
-"            #########            \n"\
-"  The kernel spreads its wings!  \n"\
-"                                 \n"\
+#define MB(num) ((num) << 20)
+#define KB(num) ((num) << 10)
 
-#endif /* COMMON_H */
-
+#endif // COMMON_H
