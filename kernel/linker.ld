@@ -25,11 +25,11 @@ SECTIONS
 	/* bootstrap stack (uninitialized) */
 	.bss BLOCK(4K) : ALIGN(4K)
 	{
-		start_bss = .;
+		bss_start = .;
 		*(COMMON)
 		*(.bss)
-		end_bss = .;
+		bss_end = .;
 	}
 
-	kernel_end = .;
+	kernel_end = ABSOLUTE(.);
 }

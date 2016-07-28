@@ -14,13 +14,13 @@
 #define KVERS "0.2"
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
+extern int kernel_end;
+extern int bss_end;
 void kernel_main(register uint32_t magic, multiboot_info_t *mbi)
 {
     vga_init();
     vga_puts("Starting kernel "KVERS"\n");
-
-vga_printf("mmap located: %08x\n", mbi->mmap_addr);
-vgaf_put_mmap( (multiboot_mmap_t *)mbi->mmap_addr, mbi->mmap_length);//temp
+    vgaf_put_mmap( (multiboot_mmap_t *)mbi->mmap_addr, mbi->mmap_length);//TODO temp for debug
     
     if (magic != MB_BL_MAGIC)
         kernel_panic("bootloader not multiboot-compliant");
@@ -31,6 +31,7 @@ vgaf_put_mmap( (multiboot_mmap_t *)mbi->mmap_addr, mbi->mmap_length);//temp
     
     gdt_init();
     idt_init();
+    mem_init(&kernel_end, 1048576);  //TODO temp number obviously
     
     asm("sti");
     vga_puts("Kernel ready.\n");
