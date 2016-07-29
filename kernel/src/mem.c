@@ -8,6 +8,7 @@
 //TODO and when we do that we will need to change every offset into it's own preproc var HEADER_SIZE
 #define PAGE_SIZE KB(4)
 #define PAGES_NEEDED(b) (b + PAGE_SIZE - 1) / PAGE_SIZE
+#define NEXT_PAGE_BOUNDARY(b) (void *) ((((int)b+(PAGE_SIZE-1)) / PAGE_SIZE) * PAGE_SIZE)
 
 static region_t regions_head = {0};
 static region_t regions_foot = {0};
@@ -25,7 +26,7 @@ static void shrink(region_t *r, uint32_t pages)
     if ((r->pages - pages) < 2)
         return;
     
-    region_t *new = ((void *)r)+(PAGE_SIZE*(1+pages)); // +1 because of BK page
+    region_t *new = (region_t *)((uint8_t *)r)+(PAGE_SIZE*(1+pages)); // +1 because of BK page
     new->used = 0;
     new->pages = r->pages - pages - 1; // -1 because of BK page
     new->prev = r;
@@ -51,7 +52,7 @@ static void *ralloc(uint32_t size)
         {
             curr->used = 1;
             shrink(curr, PAGES_NEEDED(size));
-            return ((void *)curr) + PAGE_SIZE;
+            return ((uint8_t *)curr) + PAGE_SIZE;
         }
     }
     return NULL;
@@ -83,9 +84,9 @@ static void rfree(void *p)
  * @brief Initialize mem-management structures.
  *
  */
-void mem_init(void *heap_start, uint32_t heap_size)
+void mem_init(uint8_t *heap_start, uint32_t heap_size)
 {
-    region_t *initial = heap_start;
+    region_t *initial = NEXT_PAGE_BOUNDARY(heap_start);
     initial->used = 0;
     initial->pages = heap_size/PAGE_SIZE;
     initial->prev = &regions_head;
