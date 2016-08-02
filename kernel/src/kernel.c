@@ -8,7 +8,7 @@
 #include "vga.h"
 #include "vgaf.h"
 #include "mboot.h"
-#include "mem.h"
+#include "rmem.h"
 #include "paging.h"
 
 #define KVERS "0.2"
@@ -31,10 +31,15 @@ void kernel_main(register uint32_t magic, multiboot_info_t *mbi)
     
     gdt_init();
     idt_init();
-    mem_init(&kernel_end, 1048576);  //TODO temp number obviously
+    asm("sti"); // Enable interrupts
     
-    asm("sti");
-    vga_puts("Kernel ready.\n");
+    rmem_init((uint8_t *)&kernel_end, 1048576);  //TODO temp number obviously
+    paging_init((uint8_t *)&kernel_end);
+    set_process(0);
+    paging_enable();
+    
+    
+    //vga_puts("Kernel ready.\n"); TODO
     while (1)
         asm("hlt");
 }

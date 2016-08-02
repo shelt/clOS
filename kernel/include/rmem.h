@@ -1,5 +1,5 @@
-#ifndef MEM_H
-#define MEM_H
+#ifndef RMEM_H
+#define RMEM_H
 #include <stdint.h>
 
 typedef struct region region_t;
@@ -11,4 +11,9 @@ typedef struct region
     region_t *next;
 } region_t;
 
-#endif /* MEM_H */
+
+void rmem_init(uint8_t *heap_start, uint32_t heap_size);
+void *ralloc(uint32_t size);
+void rfree(void *p);
+
+#endif /* RMEM_H */

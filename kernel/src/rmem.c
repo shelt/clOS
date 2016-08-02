@@ -1,4 +1,4 @@
-#include "mem.h"
+#include "rmem.h"
 #include "common.h"
 #include "kernel.h"
 #include "vga.h" //temp for debug
@@ -43,21 +43,6 @@ static void merge(region_t *r1, region_t *r2)
     r2->next->prev = r1;
 }
 
-static void *ralloc(uint32_t size)
-{
-    region_t *curr = &regions_head;
-    while ((curr=curr->next) != &regions_foot)
-    {
-        if (!curr->used && (curr->pages*PAGE_SIZE) >= size)
-        {
-            curr->used = 1;
-            shrink(curr, PAGES_NEEDED(size));
-            return ((uint8_t *)curr) + PAGE_SIZE;
-        }
-    }
-    return NULL;
-}
-
 static void expand(region_t *r)
 {
     if (r->used)
@@ -72,7 +57,22 @@ static void expand(region_t *r)
 }
 
 
-static void rfree(void *p)
+void *ralloc(uint32_t size)
+{
+    region_t *curr = &regions_head;
+    while ((curr=curr->next) != &regions_foot)
+    {
+        if (!curr->used && (curr->pages*PAGE_SIZE) >= size)
+        {
+            curr->used = 1;
+            shrink(curr, PAGES_NEEDED(size));
+            return ((uint8_t *)curr) + PAGE_SIZE;
+        }
+    }
+    return NULL;
+}
+
+void rfree(void *p)
 {
     region_t *r = p - PAGE_SIZE;
     r->used = 0;
@@ -81,10 +81,10 @@ static void rfree(void *p)
 
 
 /**
- * @brief Initialize mem-management structures.
+ * @brief Initialize memory regioning structures.
  *
  */
-void mem_init(uint8_t *heap_start, uint32_t heap_size)
+void rmem_init(uint8_t *heap_start, uint32_t heap_size)
 {
     region_t *initial = NEXT_PAGE_BOUNDARY(heap_start);
     initial->used = 0;
@@ -95,9 +95,4 @@ void mem_init(uint8_t *heap_start, uint32_t heap_size)
     regions_head.next = initial;
     regions_foot.prev = initial;
 }
-
-
-
-
-
 

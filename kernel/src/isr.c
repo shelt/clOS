@@ -1,6 +1,7 @@
 #include "isr.h"
 #include "io.h"
 #include "kernel.h" //kernel_panic
+#include "vga.h" //debug
 
 void *isr_irq_table[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 

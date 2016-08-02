@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-// DIRECTORIES
-
+#define MAX_PROCESSES 1024
 
 typedef struct page_dir_entry
 {
@@ -21,7 +20,7 @@ typedef struct page_dir_entry
     uint32_t addr_shifted: 20;
 } __attribute__((packed)) page_dir_entry_t;
 
-typedef struct page_table_entry
+typedef struct page_tbl_entry
 {
     uint32_t present: 1;
     uint32_t rw: 1;
@@ -34,6 +33,11 @@ typedef struct page_table_entry
     uint32_t global: 1;
     uint32_t unused: 3;
     uint32_t addr_shifted: 20;
-} __attribute__((packed)) page_table_entry_t;
+} __attribute__((packed)) page_tbl_entry_t;
+
+
+void set_process(uint32_t proc_i);
+void paging_init();
+void paging_enable();
 
 #endif /* PAGING_H */
