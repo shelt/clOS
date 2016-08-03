@@ -4,6 +4,13 @@
 #include "str.h"
 #include "io.h"
 
+/**
+ * @file idt.c
+ * @brief Interrupt Descriptor Table initialization
+ * Contains the IDT initialization functions and
+ * IDT data declarations.
+ */
+
 // Actual IDT in memory
 struct idt_entry idt[256];
 struct idt_ptr idtp;

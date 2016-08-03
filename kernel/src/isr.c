@@ -65,18 +65,6 @@ void *isr_handlers[48] = {
     0
 };
 
-/*
-void isr_irq_set(int irq, void (*fn)(struct isr_regs *r))
-{
-    irq_handlers[irq] = fn;
-}
-
-void isr_irq_unset(int irq)
-{
-    irq_handlers[irq] = 0;
-}
-*/
-
 const char *exception_messages[] =
 {
     "Division By Zero",

@@ -11,6 +11,12 @@
 #define KVERS "0.2"
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
+/**
+ * @file kernel.c
+ * @brief Kernel main function and helpers.
+ * kernel_main() is invoked in boot.s.
+ */
+
 extern int kernel_end;
 void kernel_main(register uint32_t magic, multiboot_info_t *mbi)
 {

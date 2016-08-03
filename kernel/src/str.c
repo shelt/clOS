@@ -1,8 +1,8 @@
 #include "str.h"
 
-/*
- * Functions that manipulate strings in a
- * basic way.
+/**
+ * @file str.c
+ * @brief Basic string/memory manipuation
  */
 
 unsigned char hexc_to_nibble(char c)

@@ -2,6 +2,11 @@
 #include "str.h"
 #include "io.h"
 
+/**
+ * @file vga.c
+ * @brief Kernel-level writing to a vga mode screen
+ */
+
 size_t vga_row;
 size_t vga_column;
 uint8_t vga_color;

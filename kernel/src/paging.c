@@ -2,6 +2,11 @@
 #include "kernel.h"
 #include "rmem.h"
 
+/**
+ * @file paging.c
+ * @brief Paging & page tbl/dir initialization functions
+ */
+
 // Array of page directories. Each process gets one of these.
 static page_dir_entry_t page_dir_data[MAX_PROCESSES * PAGE_ENTRY_COUNT] __attribute__((aligned(KB(4))));
 

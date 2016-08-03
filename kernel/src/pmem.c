@@ -2,6 +2,13 @@
 #include "paging.h"
 #include "rmem.h"
 
+/**
+ * @file pmem.c
+ * @brief Memory region allocation *with paging*
+ * This file incorporates rmem.c and paging.c to
+ * allow us to designate regions to processes.
+ */
+
 void *palloc(uint32_t size, uint32_t proc_i, uint8_t supervisor)
 {
     void *r = ralloc(size);

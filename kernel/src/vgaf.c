@@ -1,6 +1,11 @@
 #include "vgaf.h"
 #include "vga.h"
 
+/**
+ * @file vgaf.c
+ * @brief Extension of vga.c for putting structs
+ */
+
 void vgaf_put_mmap(multiboot_mmap_t *mmap, uint32_t len)
 {
     multiboot_mmap_t *mmap_i = mmap;

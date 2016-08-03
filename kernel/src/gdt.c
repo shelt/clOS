@@ -1,6 +1,12 @@
 #include "gdt.h"
 
-/* GDT, with 3 entries and special GDT pointer */
+/**
+ * @file gdt.c
+ * @brief Global Descriptor Table initialization
+ * Contains the GDT initialization functions and
+ * GDT data declarations.
+ */
+
 struct gdt_entry gdt[3];
 struct gdt_ptr gdtp;
 

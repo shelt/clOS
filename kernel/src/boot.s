@@ -1,3 +1,6 @@
+# Generic kernel init sections.
+# See linker.ld to see how things are laid out.
+
 # Constants
 .set ALIGN,      1<<0
 .set MEMINFO,    1<<1

@@ -1,5 +1,10 @@
 #include "io.h"
 
+/**
+ * @file io.c
+ * @brief I/O port helpers and wrappers
+ */
+
 uint8_t inportb(uint32_t port)
 {
    uint8_t ret;

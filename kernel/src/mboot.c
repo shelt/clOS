@@ -1,9 +1,18 @@
 #include "mboot.h"
-#include "vga.h"
-#include "kernel.h"
 
-#define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
-
+/**
+ * @file mboot.c
+ * @brief Multiboot data parsing
+ * This file contains 1 function that's invoked one time
+ * (by kernel_main()) - how boring.
+ */
+ 
+/**
+ * @brief Finds the last nonreserved address in the mmap
+ * We know where the heap starts: at the end of the kernel.
+ * However, we need this function to tell us where the heap
+ * ends.
+ */
 uint32_t mboot_mmap_end(multiboot_mmap_t *mmap, uint32_t len)
 {
     uint32_t curr_end = 0;

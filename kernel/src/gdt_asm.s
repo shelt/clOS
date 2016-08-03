@@ -1,7 +1,6 @@
+# This file is the assembly counterpart
+# of gdt.c.
 
-###################
-### GDT LOADING ###
-###################
 # This will set up our new segment registers. We need to do
 # something special in order to set CS. We do what is called a
 # far jump. A jump that includes a segment as well as an offset.
@@ -18,12 +17,3 @@ gdt_load:
     ljmp $0x08, $update_cs  # 0x08 is the offset to code segment (far jump, done to update %cs)
 update_cs:
     ret
-
-###################
-### IDT LOADING ###
-###################
-.global idt_load
-idt_load:
-    lidt (idtp)        # found in idt.c
-    ret
-

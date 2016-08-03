@@ -4,13 +4,17 @@
 #include "vgaf.h" //TODO debug
 
 /**
+ * @file rmem.c
+ * @brief Memory region allocation (primitive)
+ * This file allows designation of regions of
+ * memory.
+ *
  * Note: In this file, a "page" refers *only* to 4KB pages.
- * only paging.c is concerned with using PSE.
+ * only paging.c is concerned with using PSE (4MB pages).
  */
 
 #define PAGE_SIZE KB(4)
 #define PAGES_NEEDED(b) (b + PAGE_SIZE - 1) / PAGE_SIZE
-
 
 static region_t regions_head = {0};
 static region_t regions_foot = {0};
