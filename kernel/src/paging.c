@@ -3,14 +3,6 @@
 #include "paging.h"
 #include "rmem.h"
 
-#define PAGE_ENTRY_COUNT 1024
-#define PAGE_ENTRY_SIZE 4
-
-// Number of 4mb pages we can use to represent b bytes
-#define PAGES_NEEDED_4MB(b) b / MB(4)
-// Remainder of above computation (in 4kb pages)
-#define PAGES_REMAIN_4KB(b) ((b % MB(4)) + KB(4) - 1) / KB(4)
-
 // Array of page directories. Each process gets one of these.
 static page_dir_entry_t page_dir_data[MAX_PROCESSES * PAGE_ENTRY_COUNT] __attribute__((aligned(KB(4))));
 
@@ -94,6 +86,44 @@ void page_map_4mb(uint32_t proc_i, uint32_t phys_a, uint32_t virt_a, uint8_t sup
         kernel_panic("page_map_4mb: phys_a already mapped to 4kb table (remap would hide existing page table)");
 
     init_page_dir_entry(dir_entry, 1, supervisor, 1, phys_a);
+}
+
+void page_unmap(uint32_t proc_i, uint32_t virt_a)
+{
+    uint32_t dir_i = virt_a / MB(4);
+    page_dir_entry_t *dir_entry = &(get_page_dir(proc_i)[dir_i]);
+    
+    if (!dir_entry->present)
+        return;
+    else if (dir_entry->size)
+        dir_entry->present = 0;
+    else
+    {
+        uint32_t tbl_i = (virt_a % MB(4)) / KB(4);
+        page_tbl_entry_t *tbl = (page_tbl_entry_t *)(dir_entry->addr_shifted << 12);
+        tbl[tbl_i].present = 0;
+    }
+    
+    
+}
+
+// Note: not the same as doing page_unmap for all mapped pages;
+//       This (rather importantly) frees the process's page tables.
+//       In other words, page_unmap() is for runtime freeing whereas
+//       page_unmap_all() is for process cleanup.
+void page_unmap_all(uint32_t proc_i)
+{
+    page_dir_entry_t *dir_entry;
+    for (int dir_i=0; dir_i<PAGE_ENTRY_COUNT; dir_i++)
+    {
+        dir_entry = &(get_page_dir(proc_i)[dir_i]);
+        if (!dir_entry->present)
+            continue;
+        else if (dir_entry->size)
+            dir_entry->present = 0;
+        else
+            rfree((void *)(dir_entry->addr_shifted << 12));
+    }
 }
 
 void set_process(uint32_t proc_i)

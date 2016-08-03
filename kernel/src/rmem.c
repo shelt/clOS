@@ -1,9 +1,8 @@
 #include "rmem.h"
 #include "common.h"
 #include "kernel.h"
-#include "vga.h" //TODO dbg
+#include "vga.h" //TODO debug
 #include "vgaf.h" //TODO debug
-#include <stddef.h>
 
 /**
  * Note: In this file, a "page" refers *only* to 4KB pages.

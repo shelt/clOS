@@ -35,7 +35,8 @@ typedef struct page_tbl_entry
     uint32_t addr_shifted: 20;
 } __attribute__((packed)) page_tbl_entry_t;
 
-
+void page_unmap(uint32_t proc_i, uint32_t virt_a);
+void page_unmap_all(uint32_t proc_i);
 void set_process(uint32_t proc_i);
 void paging_init();
 void paging_enable();
