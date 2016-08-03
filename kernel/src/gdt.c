@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "gdt.h"
 
 /* GDT, with 3 entries and special GDT pointer */

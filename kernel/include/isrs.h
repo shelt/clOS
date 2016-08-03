@@ -1,9 +1,9 @@
 #ifndef ISRS_H
 #define ISRS_H
-
+#include "common.h"
 #include "isr.h"
 
-void isr_irq1(struct isr_regs *r);
+void isr_handle33(struct isr_regs *r);
 //TODO add more
 
 

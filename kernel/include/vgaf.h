@@ -1,7 +1,7 @@
 #ifndef VGAF_H
 #define VGAF_H
+#include "common.h"
 
-#include <stdint.h>
 #include "mboot.h"
 #include "rmem.h"
 

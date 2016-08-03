@@ -1,6 +1,5 @@
-#include "common.h"
-#include "kernel.h"
 #include "paging.h"
+#include "kernel.h"
 #include "rmem.h"
 
 // Array of page directories. Each process gets one of these.

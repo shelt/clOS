@@ -1,7 +1,6 @@
 #ifndef PAGING_H
 #define PAGING_H
-
-#include <stdint.h>
+#include "common.h"
 
 #define MAX_PROCESSES 1024
 
@@ -35,6 +34,8 @@ typedef struct page_tbl_entry
     uint32_t addr_shifted: 20;
 } __attribute__((packed)) page_tbl_entry_t;
 
+void page_map_4kb(uint32_t proc_i, uint32_t phys_a, uint32_t virt_a, uint8_t supervisor);
+void page_map_4mb(uint32_t proc_i, uint32_t phys_a, uint32_t virt_a, uint8_t supervisor);
 void page_unmap(uint32_t proc_i, uint32_t virt_a);
 void page_unmap_all(uint32_t proc_i);
 void set_process(uint32_t proc_i);

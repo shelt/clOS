@@ -1,7 +1,4 @@
-/* GCC stdlibs */
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "str.h"
 
 /*
  * Functions that manipulate strings in a
@@ -20,7 +17,7 @@ unsigned char hexc_to_nibble(char c)
 }
 char nibble_to_hexc(unsigned char n)
 {
-    if (n >= 0 && n <= 9)
+    if (n <= 9)
         return n + '0';
     else
         return n + 'a' - 10;

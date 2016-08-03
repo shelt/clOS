@@ -1,19 +1,81 @@
 #include "isr.h"
+#include "isrs.h"
 #include "io.h"
 #include "kernel.h" //kernel_panic
 #include "vga.h" //debug
 
-void *isr_irq_table[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+/**
+ * @file isr.c
+ * @brief Interrupt Service Routine handling
+ * The main function isr_main() is invoked by
+ * ISRs defined in isrload.s, and it itself
+ * invokes C exception/request handlers.
+ */
 
+void *isr_handlers[48] = {
+    // Exceptions
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    // IRQs
+    0,
+    isr_handle33,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+};
+
+/*
 void isr_irq_set(int irq, void (*fn)(struct isr_regs *r))
 {
-    isr_irq_table[irq] = fn;
+    irq_handlers[irq] = fn;
 }
 
 void isr_irq_unset(int irq)
 {
-    isr_irq_table[irq] = 0;
+    irq_handlers[irq] = 0;
 }
+*/
 
 const char *exception_messages[] =
 {
@@ -56,24 +118,15 @@ const char *exception_messages[] =
 
 void isr_main(struct isr_regs *r)
 {
-    if (r->int_no < 32) // This is a processor exception
-    {
-        kernel_panic(exception_messages[r->int_no]);
-        for (;;); //TODO don't just die
-    }
-    else
-    {
-        // This is an IRQ. Check for a custom ISR...
-        void (*fn)(struct isr_regs *r) = isr_irq_table[r->int_no - 32];
-        if (fn)
-            fn(r);
+    void (*fn)(struct isr_regs *r) = isr_handlers[r->int_no];
+    if (fn)
+        fn(r);
 
-        // If this is a hardware interrupt, EOIs are required
-        if (r->int_no < 48)
-        {
-            if (r->int_no >= 40)
-                outportb(0xA0, 0x20); // send EOI to slave PIC
-            outportb(0x20, 0x20); // send EOI to master PIC
-        }
+    // If this is a hardware interrupt, EOIs are required
+    if (r->int_no >= 32 && r->int_no < 48)
+    {
+        if (r->int_no >= 40)
+            outportb(0xA0, 0x20); // send EOI to slave PIC
+        outportb(0x20, 0x20); // send EOI to master PIC
     }
 }

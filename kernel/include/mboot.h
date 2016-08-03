@@ -1,7 +1,6 @@
 #ifndef MBOOT_H
 #define MBOOT_H
-
-#include <stdint.h>
+#include "common.h"
 
 #define MB_BL_MAGIC 0x2BADB002
 

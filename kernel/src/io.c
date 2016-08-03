@@ -1,13 +1,13 @@
 #include "io.h"
 
-unsigned char inportb(unsigned int port)
+uint8_t inportb(uint32_t port)
 {
-   unsigned char ret;
+   uint8_t ret;
    asm volatile ("inb %%dx,%%al":"=a" (ret):"d" (port));
    return ret;
 }
 
-void outportb(unsigned int port, unsigned char value)
+void outportb(uint32_t port, uint8_t value)
 {
    asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
 }

@@ -1,6 +1,5 @@
 #include "vgaf.h"
 #include "vga.h"
-#include "common.h"
 
 void vgaf_put_mmap(multiboot_mmap_t *mmap, uint32_t len)
 {

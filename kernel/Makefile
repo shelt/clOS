@@ -4,7 +4,7 @@ L_DIR = lib
 B_DIR = bin
 S_DIR = src
 
-CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra -I$(I_DIR) -I$(L_DIR) -L$(L_DIR)
+CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra -Wno-unused-parameter -I$(I_DIR) -I$(L_DIR) -L$(L_DIR)
 AFLAGS=
 
 AS=i686-elf-as

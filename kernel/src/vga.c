@@ -1,6 +1,5 @@
 #include "vga.h"
-#include "stdlib/mem.h"
-#include "stdlib/str.h"
+#include "str.h"
 #include "io.h"
 
 size_t vga_row;

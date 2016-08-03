@@ -1,11 +1,7 @@
 /* GCC stdlibs */
-#include <stdbool.h>
-#include <stdint.h>
-
+#include "kernel.h"
 #include "gdt.h"
 #include "idt.h"
-#include "common.h"
-#include "kernel.h"
 #include "vga.h"
 #include "vgaf.h"
 #include "mboot.h"

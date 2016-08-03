@@ -1,6 +1,6 @@
 #ifndef RMEM_H
 #define RMEM_H
-#include <stdint.h>
+#include "common.h"
 
 #define MAX_REGIONS 512
 

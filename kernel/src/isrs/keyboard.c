@@ -1,9 +1,9 @@
 #include "isrs.h"
 #include "io.h"
-#include "vga.h" // temp for kb
+#include "vga.h" // temp for kb TODO
 
 
-unsigned char kbdus[128] =
+uint8_t kbdus[128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',
    '9', '0', '-', '=', '\b','\t','q', 'w', 'e', 'r',
@@ -14,9 +14,9 @@ unsigned char kbdus[128] =
     0,0,0,0,0,0,0,'-',0,0,0,'+',0,0,0,0,0,0,0,0,0,0,0,
 };
 
-void isr_irq1(struct isr_regs *r)
+void isr_handle33(struct isr_regs *r)
 {
-    unsigned char scancode;
+    uint8_t scancode;
 
     scancode = inportb(0x60); // read from data buffer
 

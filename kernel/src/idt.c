@@ -101,9 +101,6 @@ void idt_init()
     idt_set_gate(45, (unsigned)int45, 0x08, 0x8E);
     idt_set_gate(46, (unsigned)int46, 0x08, 0x8E);
     idt_set_gate(47, (unsigned)int47, 0x08, 0x8E);
-
-    // Request ISRs
-    isr_irq_set(1, isr_irq1);
     
     /* Points the processor's internal register to the new IDT */
     idt_load();
