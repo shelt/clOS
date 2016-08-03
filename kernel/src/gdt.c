@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "gdt.h"
 
 /* GDT, with 3 entries and special GDT pointer */
@@ -27,7 +28,7 @@ void gdt_init()
 {
     /* Setup the GDT pointer and limit */
     gdtp.limit = (sizeof(struct gdt_entry) * 3) - 1;
-    gdtp.base = &gdt;
+    gdtp.base = (uint32_t)&gdt;
 
     /* NULL descriptor */
     gdt_set_gate(0, 0, 0, 0, 0);

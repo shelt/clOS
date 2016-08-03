@@ -4,6 +4,7 @@
 
 #include "gdt.h"
 #include "idt.h"
+#include "common.h"
 #include "kernel.h"
 #include "vga.h"
 #include "vgaf.h"
@@ -15,7 +16,6 @@
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
 extern int kernel_end;
-extern int bss_end;
 void kernel_main(register uint32_t magic, multiboot_info_t *mbi)
 {
     vga_init();
@@ -33,13 +33,14 @@ void kernel_main(register uint32_t magic, multiboot_info_t *mbi)
     idt_init();
     asm("sti"); // Enable interrupts
     
-    rmem_init((uint8_t *)&kernel_end, 1048576);  //TODO temp number obviously
-    paging_init((uint8_t *)&kernel_end);
+    uint8_t *heap_start = NEXT_PAGE_BOUNDARY(&kernel_end);
+    uint8_t *heap_end   = PREV_PAGE_BOUNDARY(mboot_mmap_end((multiboot_mmap_t *)mbi->mmap_addr, mbi->mmap_length));
+    rmem_init(heap_start, heap_end);
+    paging_init(heap_start);
     set_process(0);
     paging_enable();
     
-    
-    //vga_puts("Kernel ready.\n"); TODO
+    vga_puts("Kernel ready.\n");
     while (1)
         asm("hlt");
 }

@@ -103,7 +103,7 @@ typedef struct multiboot_mod_list multiboot_module_t;
 
 
 
-void mboot_verify(register uint32_t magic, multiboot_info_t *mbi);
+uint32_t mboot_mmap_end(multiboot_mmap_t *mmap, uint32_t len);
 
 #endif /* MBOOT_H */
 

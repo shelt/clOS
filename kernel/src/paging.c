@@ -1,11 +1,17 @@
-
 #include "common.h"
+#include "kernel.h"
 #include "paging.h"
 #include "rmem.h"
 
 #define PAGE_ENTRY_COUNT 1024
 #define PAGE_ENTRY_SIZE 4
 
+// Number of 4mb pages we can use to represent b bytes
+#define PAGES_NEEDED_4MB(b) b / MB(4)
+// Remainder of above computation (in 4kb pages)
+#define PAGES_REMAIN_4KB(b) ((b % MB(4)) + KB(4) - 1) / KB(4)
+
+// Array of page directories. Each process gets one of these.
 static page_dir_entry_t page_dir_data[MAX_PROCESSES * PAGE_ENTRY_COUNT] __attribute__((aligned(KB(4))));
 
 static page_dir_entry_t *get_page_dir(uint8_t proc_i)
@@ -68,7 +74,7 @@ void page_map_4kb(uint32_t proc_i, uint32_t phys_a, uint32_t virt_a, uint8_t sup
     page_dir_entry_t *dir_entry = &(get_page_dir(proc_i)[dir_i]);
     if (!dir_entry->present)
     {
-        tbl = ralloc(sizeof(page_tbl_entry_t) * PAGE_ENTRY_COUNT); //TODO check null
+        tbl = ralloc_bypage(1);
         init_page_dir_entry(dir_entry, 1, supervisor, 0, (uint32_t)tbl);
         init_page_tbl(tbl, supervisor);
     }
@@ -81,14 +87,18 @@ void page_map_4kb(uint32_t proc_i, uint32_t phys_a, uint32_t virt_a, uint8_t sup
 void page_map_4mb(uint32_t proc_i, uint32_t phys_a, uint32_t virt_a, uint8_t supervisor)
 {
     uint32_t dir_i = virt_a / MB(4);
-    
     page_dir_entry_t *dir_entry = &(get_page_dir(proc_i)[dir_i]);
+    
+    // Ensure we won't forget about an allocated page table
+    if (dir_entry->present && dir_entry->size)
+        kernel_panic("page_map_4mb: phys_a already mapped to 4kb table (remap would hide existing page table)");
+
     init_page_dir_entry(dir_entry, 1, supervisor, 1, phys_a);
 }
 
 void set_process(uint32_t proc_i)
 {
-    asm volatile ("               \
+    asm volatile ("           \
         addl $0x18, %%eax   \n\
         movl %%eax, %%cr3"
         : /* no outputs */
@@ -96,8 +106,13 @@ void set_process(uint32_t proc_i)
         );
 }
 
-void paging_init()
+/**
+ * @brief initialize system for paging
+ * @param heap_start Where the heap starts. Everything before it needs to be paged to the kernel process.
+ */
+void paging_init(uint8_t *heap_start)
 {
+    heap_start = NEXT_PAGE_BOUNDARY(heap_start);
     asm volatile ("                     \n\
         # Enable write-protect (bit 16) \n\
         movl %%cr0, %%eax               \n\
@@ -116,17 +131,21 @@ void paging_init()
     for (int proc_i=0; proc_i<MAX_PROCESSES; proc_i++)
         init_page_dir(proc_i, 1);
     
-    // Map kernel page
-    for (int i=0; i<4096; i++)
-        page_map_4kb(0, i*4096, i*4096, 0);
-    
+    // Page entire memory to kernel (because why not)
+    uint32_t i,pos;
+    for (pos=0, i=0; i<1024; i++, pos+=MB(4))
+        page_map_4mb(0, pos, pos, 1);
 
-//page_map_4mb
-
-//    page_map_4kb(0, 0, 0, 0);
- //   page_map_4mb(0, 4194304, 4194304, 0);
-  //  page_map_4mb(0, 8388608, 8388608, 0);
-   // page_map_4mb(0, 12582912, 12582912, 0);
+/*    
+    // Map kernel memory for kernel process
+    uint32_t needed_4mb = PAGES_NEEDED_4MB((uint32_t)heap_start);
+    uint32_t remain_4kb = PAGES_REMAIN_4KB((uint32_t)heap_start);
+    uint32_t pos=0;
+    for (uint32_t i=0; i<needed_4mb; i++, pos+=MB(4))
+        page_map_4mb(0, pos, pos, 1);
+    for (uint32_t i=0; i<remain_4kb; i++, pos+=KB(4))
+        page_map_4kb(0, pos, pos, 1);
+*/
 }
 
 
