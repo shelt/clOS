@@ -42,7 +42,7 @@ void kernel_main(register uint32_t magic, multiboot_info_t *mbi)
     set_process(0);
     paging_enable();
     
-    vga_puts("Kernel ready.\n");
+    vga_printf("Kernel ready.\n");
     while (1)
         asm("hlt");
 }
