@@ -1,0 +1,3 @@
+clOS
+
+Experimental OS in which executing programs are isolated within their working directory. Files and folders do not have permissions- instead, unelevated programs executing in userspace are sandboxed within the directory from which they were executed.
