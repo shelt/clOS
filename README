@@ -1,3 +1,19 @@
 clOS
 
-Experimental OS in which executing programs are isolated within their working directory. Files and folders do not have permissions- instead, unelevated programs executing in userspace are sandboxed within the directory from which they were executed.
+Kernel for experimental filesystem/OS in which executing programs are isolated within their working directory. Files and folders do not have permissions- instead, unelevated programs executing in userspace are sandboxed within the directory from which they were executed (by their parent process).
+
+
+
+toolchain
+
+For now, the project uses a simple i686-elf target. You may find this on your distro's repos, though binaries are available here: 
+https://github.com/rm-hull/barebones-toolchain
+
+
+
+building & running
+
+$ . toolchain/setenv.sh     # If i686-elf toolchain not on PATH
+$ cd kernel
+$ make clean
+$ make run
